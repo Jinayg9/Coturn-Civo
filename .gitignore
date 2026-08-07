@@ -1,0 +1,32 @@
+# Git ignore rules for the Civo PoC project
+# NEVER commit secrets or raw test data to GitHub
+
+# ⭐ Private execution guide — personal notes, credentials, test results
+MY_POC_GUIDE.md
+PRIVATE_*.md
+personal_notes*.md
+
+# Terraform secrets — contains your API key!
+terraform/terraform.tfvars
+
+# Terraform state files — contain sensitive infrastructure info
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+
+# Raw test results (large log files — store separately)
+results/*.log
+results/*.json
+
+# Keep the results directory itself (for structure)
+!results/.gitkeep
+
+# SSH keys (should never be in a repo)
+*.pem
+id_rsa*
+id_ed25519
+
+# OS files
+.DS_Store
+Thumbs.db
