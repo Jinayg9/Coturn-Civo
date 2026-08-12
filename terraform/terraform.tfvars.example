@@ -2,7 +2,6 @@
 # NEVER commit terraform.tfvars to GitHub (it contains secrets)
 
 civo_api_key        = "YOUR_CIVO_API_KEY_HERE"
-your_ip             = "YOUR_PUBLIC_IP_HERE"   # run: curl ifconfig.me
 turn_secret         = "YOUR_TURN_SECRET_HERE" # run: openssl rand -hex 16
 ssh_public_key_path = "~/.ssh/id_ed25519.pub"
 region              = "MUM1"

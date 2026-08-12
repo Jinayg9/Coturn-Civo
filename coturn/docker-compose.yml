@@ -1,5 +1,3 @@
-version: "3.8"
-
 # ==========================================================
 # Coturn TURN Server — Docker Compose
 # Run with: docker compose up -d
@@ -9,7 +7,7 @@ version: "3.8"
 
 services:
   coturn:
-    image: coturn/coturn:latest
+    image: coturn/coturn:4.6
     container_name: coturn-poc
     # CRITICAL: Use host networking — Docker bridge doesn't
     # handle the high volume of UDP relay ports well for WebRTC
@@ -18,13 +16,12 @@ services:
     volumes:
       # Mount our config file into the container (read-only)
       - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
-      # Persist logs across container restarts
-      - coturn-logs:/var/log/coturn
     command: -c /etc/coturn/turnserver.conf
     # Resource limits — prevent Coturn from consuming all RAM
     mem_limit: 2g
     cpus: "3.0"
-
-volumes:
-  coturn-logs:
-    driver: local
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

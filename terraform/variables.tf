@@ -22,11 +22,6 @@ variable "ssh_public_key_path" {
   default     = "~/.ssh/id_ed25519.pub"
 }
 
-variable "your_ip" {
-  description = "Your public IP to restrict SSH access. Get it from: curl ifconfig.me"
-  type        = string
-}
-
 variable "turn_secret" {
   description = "Secret for TURN server auth. Generate with: openssl rand -hex 16"
   type        = string

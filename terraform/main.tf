@@ -13,12 +13,12 @@ resource "civo_firewall" "turn_firewall" {
   name                 = "coturn-poc-firewall"
   create_default_rules = false # We define all rules ourselves
 
-  # SSH — only from your IP (security best practice)
+  # SSH — open to all (we rely on SSH key auth for security)
   ingress_rule {
     label      = "ssh"
     protocol   = "tcp"
     port_range = "22"
-    cidr       = ["${var.your_ip}/32"]
+    cidr       = ["0.0.0.0/0"]
     action     = "allow"
   }
 
@@ -61,7 +61,7 @@ resource "civo_firewall" "turn_firewall" {
   ingress_rule {
     label      = "webrtc-relay"
     protocol   = "udp"
-    port_range = "49152-65535"
+    port_range = "49152-50151"
     cidr       = ["0.0.0.0/0"]
     action     = "allow"
   }
@@ -94,69 +94,95 @@ locals {
     #!/bin/bash
     set -e
 
-    # Update and install Docker
+    export DEBIAN_FRONTEND=noninteractive
+
+    # Update and install monitoring tools
     apt-get update -y
     apt-get install -y ca-certificates curl gnupg iperf3 bmon htop mtr-tiny
 
-    # Install Docker
+    # Install Docker — official method
     install -m 0755 -d /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     chmod a+r /etc/apt/keyrings/docker.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+
+    ARCH=$(dpkg --print-architecture)
+    CODENAME=$(. /etc/os-release && echo "$VERSION_CODENAME")
+    echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $CODENAME stable" \
       | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
     apt-get update -y
     apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
     # Add ubuntu user to docker group (so it doesn't need sudo)
     usermod -aG docker ubuntu
 
+    # Get the VM's own public IP (needed for Coturn external-ip)
+    VM_PUBLIC_IP=$(curl -4s ifconfig.me)
+
     # Create the coturn config directory
     mkdir -p /home/ubuntu/coturn
     chown ubuntu:ubuntu /home/ubuntu/coturn
 
-    # Write turnserver.conf
-    cat > /home/ubuntu/coturn/turnserver.conf <<'CONF'
+    # Write turnserver.conf — uses the VM's real public IP
+    cat > /home/ubuntu/coturn/turnserver.conf <<CONF
     listening-ip=0.0.0.0
-    external-ip=$(curl -s ifconfig.me)
+    external-ip=$VM_PUBLIC_IP
     listening-port=3478
     tls-listening-port=5349
     min-port=49152
-    max-port=65535
+    max-port=50151
     lt-cred-mech
     user=poctest:${var.turn_secret}
     realm=turn.poc.coturn
-    denied-peer-ip=10.0.0.0-10.255.255.255
-    denied-peer-ip=192.168.0.0-192.168.255.255
-    denied-peer-ip=172.16.0.0-172.31.255.255
+    
+    # Bandwidth controls
+    max-bps=250000
+    bps-capacity=0
+    total-quota=1200
+    user-quota=6
+
+    # Security / Anti-SSRF (do NOT block 10.x, 192.168.x, 172.16.x as it breaks mobile)
+    denied-peer-ip=0.0.0.0-0.255.255.255
+    denied-peer-ip=127.0.0.0-127.255.255.255
+    denied-peer-ip=169.254.0.0-169.254.255.255
+    fingerprint
+    stale-nonce=600
+    
+    # CLI
     cli-ip=127.0.0.1
     cli-port=5766
     cli-password=adminpoc123
-    log-file=/var/log/coturn/turnserver.log
-    verbose
+    
+    # Logging
+    log-file=stdout
+    simple-log
+    
     no-multicast-peers
     CONF
 
     # Write docker-compose.yml
-    cat > /home/ubuntu/coturn/docker-compose.yml <<'COMPOSE'
-    version: "3.8"
+    cat > /home/ubuntu/coturn/docker-compose.yml <<COMPOSE
     services:
       coturn:
-        image: coturn/coturn:latest
+        image: coturn/coturn:4.6
+        container_name: coturn-poc
         network_mode: host
         restart: always
         volumes:
           - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
-          - coturn-logs:/var/log/coturn
         command: -c /etc/coturn/turnserver.conf
-    volumes:
-      coturn-logs:
+        logging:
+          driver: json-file
+          options:
+            max-size: "10m"
+            max-file: "5"
     COMPOSE
 
     # Start Coturn
     cd /home/ubuntu/coturn
     docker compose up -d
 
-    echo "Setup complete" >> /var/log/cloud-init-coturn.log
+    echo "Setup complete at $(date)" >> /var/log/cloud-init-coturn.log
   EOT
 }
 
