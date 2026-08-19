@@ -193,21 +193,21 @@ resource "civo_instance" "turn_server" {
   hostname    = "coturn-poc"
   region      = var.region
   size        = var.instance_size
-  disk_image  = data.civo_disk_image.ubuntu.id
+  disk_image  = element(data.civo_disk_image.ubuntu.diskimages, 0).id
   firewall_id = civo_firewall.turn_firewall.id
-  ssh_key_ids = [civo_ssh_key.poc_key.id]
-  user_data   = local.cloud_init
+  sshkey_id   = civo_ssh_key.poc_key.id
+  script      = local.cloud_init
 
   tags = ["turn-poc", "coturn", "mumbai"]
 }
 
 # ============================================================
-# Data source — look up the Ubuntu 24.04 image ID in MUM1
+# Data source — look up the Ubuntu 24.04 (Noble) image ID in MUM1
 # ============================================================
 data "civo_disk_image" "ubuntu" {
   filter {
     key    = "name"
-    values = ["ubuntu-24-04"]
+    values = ["ubuntu-noble"]
   }
   region = var.region
 }
