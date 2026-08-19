@@ -11,9 +11,9 @@ variable "region" {
 }
 
 variable "instance_size" {
-  description = "VM size. g4s.kube.medium = 4 vCPU, 8GB RAM"
+  description = "VM size. g4s.medium = 4 vCPU, 8GB RAM"
   type        = string
-  default     = "g4s.kube.medium"
+  default     = "g4s.medium"
 }
 
 variable "ssh_public_key_path" {
