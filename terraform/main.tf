@@ -198,7 +198,7 @@ resource "civo_instance" "turn_server" {
   ssh_key_ids = [civo_ssh_key.poc_key.id]
   user_data   = local.cloud_init
 
-  tags = ["poc", "turn", "coturn", "mumbai"]
+  tags = ["turn-poc", "coturn", "mumbai"]
 }
 
 # ============================================================
