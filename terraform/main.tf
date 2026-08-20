@@ -139,14 +139,17 @@ locals {
     max-bps=250000
     bps-capacity=0
     total-quota=1200
-    user-quota=6
+    user-quota=12
 
-    # Security / Anti-SSRF (do NOT block 10.x, 192.168.x, 172.16.x as it breaks mobile)
-    denied-peer-ip=0.0.0.0-0.255.255.255
-    denied-peer-ip=127.0.0.0-127.255.255.255
-    denied-peer-ip=169.254.0.0-169.254.255.255
+    # Security
+    # NOTE: denied-peer-ip rules removed for PoC testing.
+    # In production, re-add:
+    #   denied-peer-ip=0.0.0.0-0.255.255.255
+    #   denied-peer-ip=127.0.0.0-127.255.255.255
+    #   denied-peer-ip=169.254.0.0-169.254.255.255
     fingerprint
     stale-nonce=600
+    allow-loopback-peers
     
     # CLI
     cli-ip=127.0.0.1

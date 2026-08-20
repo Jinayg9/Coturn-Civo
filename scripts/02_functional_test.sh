@@ -37,11 +37,12 @@ timeout 15 turnutils_uclient \
   -m 1 \
   -y \
   -n 100 \
+  -e 8.8.8.8 \
   -u ${TURN_USER} \
   -w ${TURN_SECRET} \
   ${TURN_IP} \
   && echo "  ✅ PASS — TURN relay is working" \
-  || echo "  ❌ FAIL — TURN relay failed (check Coturn logs on VM)"
+  || echo "  ❌ FAIL — RELAY failed (check Coturn logs on VM)"
 
 echo ""
 echo "================================================"
