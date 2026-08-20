@@ -113,18 +113,18 @@ locals {
     apt-get update -y
     apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-    # Add ubuntu user to docker group (so it doesn't need sudo)
-    usermod -aG docker ubuntu
+    # Add civo user to docker group (so it doesn't need sudo)
+    usermod -aG docker civo
 
     # Get the VM's own public IP (needed for Coturn external-ip)
     VM_PUBLIC_IP=$(curl -4s ifconfig.me)
 
     # Create the coturn config directory
-    mkdir -p /home/ubuntu/coturn
-    chown ubuntu:ubuntu /home/ubuntu/coturn
+    mkdir -p /home/civo/coturn
+    chown civo:civo /home/civo/coturn
 
     # Write turnserver.conf — uses the VM's real public IP
-    cat > /home/ubuntu/coturn/turnserver.conf <<CONF
+    cat > /home/civo/coturn/turnserver.conf <<CONF
     listening-ip=0.0.0.0
     external-ip=$VM_PUBLIC_IP
     listening-port=3478
@@ -161,7 +161,7 @@ locals {
     CONF
 
     # Write docker-compose.yml
-    cat > /home/ubuntu/coturn/docker-compose.yml <<COMPOSE
+    cat > /home/civo/coturn/docker-compose.yml <<COMPOSE
     services:
       coturn:
         image: coturn/coturn:4.6
@@ -179,7 +179,7 @@ locals {
     COMPOSE
 
     # Start Coturn
-    cd /home/ubuntu/coturn
+    cd /home/civo/coturn
     docker compose up -d
 
     echo "Setup complete at $(date)" >> /var/log/cloud-init-coturn.log

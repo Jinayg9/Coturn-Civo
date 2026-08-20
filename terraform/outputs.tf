@@ -5,7 +5,7 @@ output "vm_public_ip" {
 
 output "ssh_command" {
   description = "Ready-to-use SSH command to connect to the TURN server"
-  value       = "ssh ubuntu@${civo_instance.turn_server.public_ip}"
+  value       = "ssh civo@${civo_instance.turn_server.public_ip}"
 }
 
 output "turn_uri" {
