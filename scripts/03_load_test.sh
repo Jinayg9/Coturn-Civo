@@ -52,7 +52,7 @@ run_test() {
   log "--- [${LABEL}] ${SESSIONS} sessions for ${DURATION}s ---"
   timeout ${DURATION} turnutils_uclient \
     -m ${SESSIONS} \
-    -y \
+    -e 8.8.8.8 \
     -c \
     -l 1000 \
     -z 10 \

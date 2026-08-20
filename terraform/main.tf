@@ -139,7 +139,7 @@ locals {
     max-bps=250000
     bps-capacity=0
     total-quota=1200
-    user-quota=12
+    user-quota=1000
 
     # Security
     # NOTE: denied-peer-ip rules removed for PoC testing.
