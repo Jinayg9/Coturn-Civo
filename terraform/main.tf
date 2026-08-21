@@ -66,6 +66,14 @@ resource "civo_firewall" "turn_firewall" {
     action     = "allow"
   }
 
+  # ICMP (ping) — needed for latency testing
+  ingress_rule {
+    label    = "icmp-ping"
+    protocol = "icmp"
+    cidr     = ["0.0.0.0/0"]
+    action   = "allow"
+  }
+
   # iperf3 testing port
   ingress_rule {
     label      = "iperf3"
@@ -75,13 +83,36 @@ resource "civo_firewall" "turn_firewall" {
     action     = "allow"
   }
 
+  ingress_rule {
+    label      = "iperf3-udp"
+    protocol   = "udp"
+    port_range = "5201"
+    cidr       = ["0.0.0.0/0"]
+    action     = "allow"
+  }
+
   # Allow all outbound traffic
   egress_rule {
-    label      = "all-outbound"
+    label      = "all-outbound-tcp"
     protocol   = "tcp"
     port_range = "1-65535"
     cidr       = ["0.0.0.0/0"]
     action     = "allow"
+  }
+
+  egress_rule {
+    label      = "all-outbound-udp"
+    protocol   = "udp"
+    port_range = "1-65535"
+    cidr       = ["0.0.0.0/0"]
+    action     = "allow"
+  }
+
+  egress_rule {
+    label    = "all-outbound-icmp"
+    protocol = "icmp"
+    cidr     = ["0.0.0.0/0"]
+    action   = "allow"
   }
 }
 
@@ -200,6 +231,10 @@ resource "civo_instance" "turn_server" {
   firewall_id = civo_firewall.turn_firewall.id
   sshkey_id   = civo_ssh_key.poc_key.id
   script      = local.cloud_init
+
+  lifecycle {
+    ignore_changes = [script]
+  }
 
   tags = ["turn-poc", "coturn", "mumbai"]
 }
