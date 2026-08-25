@@ -127,9 +127,33 @@ locals {
 
     export DEBIAN_FRONTEND=noninteractive
 
+    # --- Kernel tuning for high-concurrency TURN ---
+    cat >> /etc/sysctl.conf <<SYSCTL
+    fs.file-max = 1000000
+    net.ipv4.ip_local_port_range = 1024 65535
+    net.core.rmem_max = 26214400
+    net.core.wmem_max = 26214400
+    net.core.rmem_default = 1048576
+    net.core.wmem_default = 1048576
+    net.core.netdev_max_backlog = 50000
+    SYSCTL
+    sysctl -p
+
+    # Raise per-process file descriptor limits
+    cat >> /etc/security/limits.conf <<LIMITS
+    *    soft    nofile    1000000
+    *    hard    nofile    1000000
+    root soft    nofile    1000000
+    root hard    nofile    1000000
+    LIMITS
+
     # Update and install monitoring tools
     apt-get update -y
-    apt-get install -y ca-certificates curl gnupg iperf3 bmon htop mtr-tiny
+    apt-get install -y ca-certificates curl gnupg iperf3 bmon htop mtr-tiny vnstat dstat sysstat
+
+    # Start vnstat for automatic bandwidth monitoring
+    systemctl enable vnstat
+    systemctl start vnstat
 
     # Install Docker — official method
     install -m 0755 -d /etc/apt/keyrings
@@ -166,11 +190,11 @@ locals {
     user=poctest:${var.turn_secret}
     realm=turn.poc.coturn
     
-    # Bandwidth controls
-    max-bps=250000
-    bps-capacity=0
-    total-quota=1200
-    user-quota=1000
+    # Bandwidth controls - uncapped for load testing
+    # max-bps=250000
+    # bps-capacity=0
+    total-quota=0
+    user-quota=0
 
     # Security
     # NOTE: denied-peer-ip rules removed for PoC testing.
@@ -185,7 +209,7 @@ locals {
     # CLI
     cli-ip=127.0.0.1
     cli-port=5766
-    cli-password=adminpoc123
+    cli-password=${var.turn_cli_password}
     
     # Logging
     log-file=stdout

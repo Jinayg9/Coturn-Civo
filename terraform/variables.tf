@@ -27,3 +27,10 @@ variable "turn_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "turn_cli_password" {
+  description = "Password for the Coturn CLI admin interface"
+  type        = string
+  sensitive   = true
+  default     = "adminpoc123"
+}

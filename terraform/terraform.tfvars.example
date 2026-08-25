@@ -3,6 +3,7 @@
 
 civo_api_key        = "YOUR_CIVO_API_KEY_HERE"
 turn_secret         = "YOUR_TURN_SECRET_HERE" # run: openssl rand -hex 16
+turn_cli_password   = "YOUR_CLI_PASSWORD_HERE"
 ssh_public_key_path = "~/.ssh/id_ed25519.pub"
 region              = "MUM1"
 instance_size       = "g4s.medium"
