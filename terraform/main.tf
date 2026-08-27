@@ -61,7 +61,7 @@ resource "civo_firewall" "turn_firewall" {
   ingress_rule {
     label      = "webrtc-relay"
     protocol   = "udp"
-    port_range = "49152-50151"
+    port_range = "40000-65000"
     cidr       = ["0.0.0.0/0"]
     action     = "allow"
   }
@@ -184,8 +184,8 @@ locals {
     external-ip=$VM_PUBLIC_IP
     listening-port=3478
     tls-listening-port=5349
-    min-port=49152
-    max-port=50151
+    min-port=40000
+    max-port=65000
     lt-cred-mech
     user=poctest:${var.turn_secret}
     realm=turn.poc.coturn
